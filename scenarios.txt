@@ -1,0 +1,263 @@
+/*
+### GET /drop_token - Return all in-progress games. ###
+  * Output
+```
+ { "games" : ["gameid1", "gameid2"] }
+```
+  *  #### Status codes ####
+    * 200 - OK. On success
+*/
+
+Given multiple games in progress
+When requesting games
+Then all games are returned
+
+
+
+/*
+### POST /drop_token - Create a new game. ###
+  * Input:
+```
+{ "players": ["player1", "player2"],
+  "columns": 4,
+  "rows": 4
+}
+```
+  * Output:
+ ```
+ { "gameId": "some_string_token"}
+ ```
+  * #### Status codes ####
+    * 200 - OK. On success
+    * 400 - Malformed request
+
+*/
+Given a request for a new game
+When creating a new game
+Then a new game is created
+	And a game id is returned
+	
+Given a malformed request
+When creating a new game
+Then a malformed response is returned
+	
+/*
+### GET /drop_token/{gameId} - Get the state of the game. ###
+  * output:
+```
+{ "players" : ["player1", "player2"], # Initial list of players.
+  "state": "DONE/IN_PROGRESS",
+  "winner": "player1", # in case of draw, winner will be null, state will be DONE.
+                       # in case game is still in progess, key should not exist.
+}
+```
+  * #### Status codes ####
+    * 200 - OK. On success
+    * 400 - Malformed request
+    * 404 - Game/moves not found.
+*/
+Given a game
+	And the game is in progress
+When requesting the status of the game
+Then the status is IN_PROGRESS
+
+Given a game
+	And the game is done
+When requesting the status of the game
+Then the status is DONE
+
+Given a request for a game status with an unknown id
+When requesting the status of the game
+Then an error is returned indicating the game wasn't found
+
+Given a malformed request
+When requesting the status of the game
+Then a malformed response is returned
+
+/*
+### GET /drop_token/{gameId}/moves- Get (sub) list of the moves played. ###
+Optional Query parameters: **GET /drop_token/{gameId}/moves?start=0&until=1**.
+  * Output:
+```
+{
+  "moves": [{"type": "MOVE", "player": "player1", "column":1}, {"type": "QUIT", "player": "player2"}]
+}
+```
+  * #### Status codes ####
+    * 200 - OK. On success
+    * 400 - Malformed request
+    * 404 - Game/moves not found.
+*/
+
+0
+1
+3
+Given a game with <number_of_moves> moves
+	And a request for a full list of moves
+When requesting moves
+Then the list of moves is returned
+
+Given a game with <number_of_moves> moves
+	And a request for a subset of moves <range>
+When requesting moves
+Then the list of moves is returned
+
+Given a game with <number_of_moves> moves
+	And a request for a subset of moves <range>
+When requesting moves
+Then an error is returned
+	And the error indicates the moves are not found
+	
+Given a request for a game status with an unknown id
+When requesting moves
+Then an error is returned indicating the game wasn't found
+
+Given a malformed request
+When requesting moves
+Then a malformed response is returned
+
+/*
+### POST /drop_token/{gameId}/{playerId} - Post a move. ###
+  * Input:
+```
+{
+ "column" : 2
+}
+```
+  * Output:
+```
+{
+  "move": "{gameId}/moves/{move_number}"
+}
+```
+  * #### Status codes ####
+    * 200 - OK. On success
+    * 400 - Malformed input. Illegal move
+    * 404 - Game not found or player is not a part of it.
+    * 409 - Player tried to post when it's not their turn.
+*/
+
+Given a game in progress
+	And a known player in the game
+	And a request to make a move
+	And it is the players turn
+	And the column has open spaces
+When requesting to make a move
+Then the move is successful
+	And the move number is returned
+	And the move is included in the moves list
+	
+Given a game in progress
+	And a unknown player in the game
+	And a request to make a move
+When requesting to make a move
+Then an error is returned
+	And the error indicates the player is unknown
+
+Given a request for a game status with an unknown id
+	And a request to make a move
+When requesting to make a move
+Then an error is returned
+	And the error indicates the game is unknown
+
+Given a game in progress
+	And a malformed request to make a move
+When requesting to make a move
+Then an error is returned
+	And the error indicates the request is malformed
+
+Given a game in progress
+	And a known player in the game
+	And a request to make a move
+	And it is not the players turn
+When requesting to make a move
+Then an error is returned
+	And the error indicates it is not the players turn
+
+Given a game in progress
+	And a known player in the game
+	And a malformed request to make a move
+	And it is the players turn
+	And the column does not have open spaces
+When requesting to make a move
+Then an error is returned
+	And the error indicates the move is not allowed
+
+/*
+### GET /drop_token/{gameId}/moves/{move_number} - Return the move. ###
+ * Output:
+```
+{
+  "type" : "MOVE",
+  "player": "player1",
+  "column": 2
+}
+```
+ * #### Status codes ####
+    * 200 - OK. On success
+    * 400 - Malformed request
+    * 404 - Game/moves not found.
+*/
+
+|1|0|
+|2|1|
+|4|2|
+|last number|
+Given a game 
+	And the game has <number_of_total_moves>
+	And a request for move number <move_number_request> that is not in the game
+When requesting a move
+Then the move is returned
+
+|1|-1|
+|0|0|
+|1|1|
+|3|4|
+past number of moves
+Given a game 
+	And the game has <number_of_total_moves>
+	And a request for move number <move_number_request> that is not in the game
+When requesting a move
+Then the move is returned
+
+Given a request for a game status with an unknown id
+When requesting a move
+Then an error is returned indicating the game was not found
+
+Given a malformed request
+When requesting a move
+Then a malformed response is returned
+
+/*
+### DELETE /drop_token/{gameId}/{playerId} - Player quits from game. ###
+ * #### Status codes ####
+   * 202 - OK. On success
+   * 404 - Game not found or player is not a part of it.
+   * 410 - Game is already in DONE state.
+*/
+
+Given a game in progress
+When a player requests to quit the game
+Then the player has quit the game
+	And the game is done
+	And the other player is the winner
+	And the moves indicate the player has quit
+	
+Given a game that is done
+When a player requests to quit the game
+Then an error is returned 
+	And the error indicates the game is already done
+	
+Given a game in progress
+	And a request for an unknown player to quit
+When the player requests to quit the game
+Then an error is returned
+	And the error indcates the player is unknown
+
+Given a request for a game status with an unknown id
+When the player requests to quit the game
+Then an error is returned indicating the game was not found
+
+Given a malformed request
+When the player requests to quit the game
+Then a malformed response is returned
