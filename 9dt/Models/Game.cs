@@ -67,21 +67,35 @@ namespace _9dt.Models
 
         internal void Quit(string quitterId)
         {
+            VerifyPlayerPartOfGame(quitterId);
+
             if (_state == GameState.DONE)
                 throw new MoveNotAllowedException();
-            if (_player1 == quitterId)
-                _winner = _player2;
-            else if (_player2 == quitterId)
-                _winner = _player1;
-            else
-                throw new PlayerNotFoundException();
+
+            _winner = (_player1 == quitterId) ? _player2 : _player1;
             _state = GameState.DONE;
+
             AddMove(Move.MoveType.QUIT, quitterId);
         }
 
-        private void AddMove(Move.MoveType type, string player, int? column = null)
+        internal int AddMove(Move.MoveType type, string player, int? column = null)
         {
+            VerifyPlayerPartOfGame(player);
+
+            if (type == Move.MoveType.MOVE)
+            {
+                if (column == null || column < 0 || column > 3)
+                    throw new IllegalMoveException();
+            }
+
             Moves.Add(new Move(type, player, column));
+            return Moves.Count() - 1;
+        }
+
+        private void VerifyPlayerPartOfGame(string player)
+        {
+            if (_player1 != player && _player2 != player)
+                throw new PlayerNotFoundException();
         }
 
         [Obsolete]

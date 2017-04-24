@@ -100,26 +100,30 @@
   <ItemGroup>
     <Compile Include="App_Start\SwaggerConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Exceptions\IllegalMoveException.cs" />
     <Compile Include="Exceptions\PlayerNotFoundException.cs" />
     <Compile Include="Exceptions\GameNotFoundException.cs" />
     <Compile Include="Exceptions\MoveNotAllowedException.cs" />
     <Compile Include="Exceptions\RowsColumnsCannotBeLessThanFourException.cs" />
     <Compile Include="Exceptions\PlayersCannotHaveSameNameException.cs" />
     <Compile Include="Exceptions\NumberOfPlayersMustBeTwoException.cs" />
-    <Compile Include="Models\GameId.cs" />
-    <Compile Include="Models\GameStatus.cs" />
-    <Compile Include="Models\NewGame.cs" />
+    <Compile Include="Models\RequestModels\MakeMove.cs" />
+    <Compile Include="Models\ResponseModels\GameId.cs" />
+    <Compile Include="Models\ResponseModels\GameStatus.cs" />
+    <Compile Include="Models\RequestModels\NewGame.cs" />
     <Compile Include="Controllers\DropTokenController.cs" />
     <Compile Include="Games\GamesRepository.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\Game.cs" />
-    <Compile Include="Models\GameIdList.cs" />
+    <Compile Include="Models\ResponseModels\GameIdList.cs" />
+    <Compile Include="Models\ResponseModels\MakeMove.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
+    <Content Include="Models\ResponseModels\packages.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

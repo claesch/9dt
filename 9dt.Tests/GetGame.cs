@@ -85,7 +85,7 @@ namespace _9dt.Tests
         private void Given_a_game()
         {
             _players = CreatePlayersArray(2);
-            var createResponse = _controller.Post(new NewGame { Players = _players, Rows = 4, Columns = 4 });
+            var createResponse = _controller.CreateGame(new NewGame { Players = _players, Rows = 4, Columns = 4 });
             _gameId = createResponse.Id;
         }
 
@@ -101,7 +101,7 @@ namespace _9dt.Tests
 
         private void When_requesting_the_status_of_a_game()
         {
-            _response = _controller.Get(_gameId);
+            _response = _controller.GetStatus(_gameId);
         }
 
         private void Then_the_players_should_be_correct()

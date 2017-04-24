@@ -48,10 +48,10 @@ namespace _9dt.Tests
             game.SetWinner(player);
         }
         [Obsolete]
-        protected Move GetLastMove(string gameId)
+        protected List<Move> GetMoves(string gameId)
         {
             var game = _gamesRepo.First(g => g.Id == gameId);
-            return game.GetLastMove();
+            return game.Moves;
         }
 
         protected string[] CreatePlayersArray(int numberOfPlayers)

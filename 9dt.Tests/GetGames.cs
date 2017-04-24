@@ -47,7 +47,7 @@ namespace _9dt.Tests
         private void Given_a_number_of_games_in_progress(int numberOfGames)
         {
             for (var i = 0; i < numberOfGames; i++)
-                _controller.Post(new NewGame { Players = CreatePlayersArray(2), Rows = 4, Columns = 4});
+                _controller.CreateGame(new NewGame { Players = CreatePlayersArray(2), Rows = 4, Columns = 4});
         }
     }
 }

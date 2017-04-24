@@ -6,6 +6,8 @@ using Swashbuckle.Swagger.Annotations;
 using System.Net;
 using _9dt.Exceptions;
 using System.Collections.Generic;
+using System;
+using static _9dt.Models.Move;
 
 namespace _9dt.Controllers
 {
@@ -35,7 +37,8 @@ namespace _9dt.Controllers
         // GET: drop_token/598929-238428jfjklf...
         [SwaggerResponse(HttpStatusCode.OK)]
         [SwaggerResponse(HttpStatusCode.NotFound)]
-        public GameStatus Get(string gameId)
+        [HttpGet]
+        public GameStatus GetStatus(string gameId)
         {
             var game = GetGame(gameId);
             var status = new GameStatus
@@ -50,7 +53,8 @@ namespace _9dt.Controllers
         // POST: drop_token
         [SwaggerResponse(HttpStatusCode.OK)]
         [SwaggerResponse(HttpStatusCode.BadRequest)]
-        public GameId Post(NewGame createGame)
+        [HttpPost]
+        public GameId CreateGame(NewGame createGame)
         {
             if (createGame?.Players == null)
                 throw new HttpResponseException(HttpStatusCode.BadRequest);
@@ -71,10 +75,22 @@ namespace _9dt.Controllers
         [SwaggerResponse(HttpStatusCode.NotFound)]
         [SwaggerResponse(HttpStatusCode.Gone)]
         [Route("drop_token/{gameId}/{playerId}")]
-        public void Delete(string gameId, string playerId)
+        [HttpDelete]
+        public void Quit(string gameId, string playerId)
         {
             var game = GetGame(gameId);
             game.Quit(playerId);
+        }
+
+        [SwaggerResponse(HttpStatusCode.OK)]
+        [SwaggerResponse(HttpStatusCode.Conflict)]
+        [Route("drop_token/{gameId}/{playerId}")]
+        [HttpPost]
+        public MakeMoveResponse RequestMove(string gameId, string playerId, MakeMove request)
+        {
+            var game = GetGame(gameId);
+            var moveNumber = game.AddMove(MoveType.MOVE, playerId, request.Column);
+            return new MakeMoveResponse(gameId, moveNumber);
         }
     }
 }

@@ -109,7 +109,7 @@ namespace _9dt.Tests
 
         private void When_creating_a_new_game()
         {
-            _createResponse = _controller.Post(_request);
+            _createResponse = _controller.CreateGame(_request);
         }
 
         private void Then_a_new_game_is_created()

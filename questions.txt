@@ -1,0 +1,4 @@
+Columns - 0 based or 1 based?
+Should they be able to specify rows / columns beside 4? Is so, how would less work?
+One part of contract specifies a player's id. There isn't anywhere this is specified, so would it just be their name?
+Should a player be able to have a space in their name? Length limit?

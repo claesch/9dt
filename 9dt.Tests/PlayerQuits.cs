@@ -3,6 +3,7 @@ using _9dt.Models;
 using FluentAssertions;
 using NUnit.Framework;
 using System;
+using System.Linq;
 using static _9dt.Models.Move;
 
 namespace _9dt.Tests
@@ -111,24 +112,23 @@ namespace _9dt.Tests
 
         private void Given_a_game_in_progress()
         {
-            var createResponse = _controller.Post(new NewGame { Players = _players, Rows = 4, Columns = 4 });
+            var createResponse = _controller.CreateGame(new NewGame { Players = _players, Rows = 4, Columns = 4 });
             _gameId = createResponse.Id;
         }
         private void Given_a_game_that_is_done()
         {
-            var createResponse = _controller.Post(new NewGame { Players = _players, Rows = 4, Columns = 4 });
-            _gameId = createResponse.Id;
+            Given_a_game_in_progress();
             AndTheWinnerIs(_gameId, _players[0]);
         }
 
         private void When_a_player_requests_to_quit_the_game(string quitterId)
         {
-            _controller.Delete(_gameId, quitterId);
+            _controller.Quit(_gameId, quitterId);
         }
 
         private void Then_the_state_should_be(GameState state)
         {
-            _gameStatusResponse = _controller.Get(_gameId);
+            _gameStatusResponse = _controller.GetStatus(_gameId);
             _gameStatusResponse.State.Should().Be(state);
         }
 
@@ -139,7 +139,7 @@ namespace _9dt.Tests
 
         private void And_the_moves_indicate_the_player_has_quit(string quitter)
         {
-            var lastMove = base.GetLastMove(_gameId);
+            var lastMove = base.GetMoves(_gameId).Last();
             lastMove.Player.Should().Be(quitter);
             lastMove.Type.Should().Be(MoveType.QUIT);
         }
