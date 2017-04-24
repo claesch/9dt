@@ -7,6 +7,7 @@ using System.Net;
 using _9dt.Exceptions;
 using System.Collections.Generic;
 using static _9dt.Models.Move;
+using System;
 
 namespace _9dt.Controllers
 {
@@ -87,7 +88,7 @@ namespace _9dt.Controllers
         [SwaggerResponse(HttpStatusCode.Conflict)]
         [Route("drop_token/{gameId}/{playerId}")]
         [HttpPost]
-        public MakeMoveResponse RequestMove(string gameId, string playerId, [FromBody]MakeMove request)
+        public MakeMoveResponse CreateMove(string gameId, string playerId, [FromBody]MakeMove request)
         {
             var game = GetGame(gameId);
             if(request?.Column == null)
@@ -95,6 +96,18 @@ namespace _9dt.Controllers
 
             var moveNumber = game.AddMove(MoveType.MOVE, playerId, request.Column);
             return new MakeMoveResponse(gameId, moveNumber);
+        }
+
+        [SwaggerResponse(HttpStatusCode.OK)]
+        [SwaggerResponse(HttpStatusCode.BadRequest)]
+        [SwaggerResponse(HttpStatusCode.NotFound)]
+        [Route("drop_token/{gameId}/moves/{moveNumber}")]
+        [HttpGet]
+        public MoveResponse GetMove(string gameId, int moveNumber)
+        {
+            var game = GetGame(gameId);
+            var move = game.GetMove(moveNumber);
+            return new MoveResponse { Column = move.Column, Player = move.Player, Type = move.Type };
         }
     }
 }

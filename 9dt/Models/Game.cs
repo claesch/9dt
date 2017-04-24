@@ -11,14 +11,14 @@ namespace _9dt.Models
         DONE
     }
 
+    public enum MoveType
+    {
+        QUIT,
+        MOVE
+    }
+
     public struct Move
     {
-        public enum MoveType
-        {
-            QUIT,
-            MOVE
-        }
-
         public Move(MoveType type, string player, int? column = null)
         {
             Type = type;
@@ -75,15 +75,15 @@ namespace _9dt.Models
             _winner = (_player1 == quitterId) ? _player2 : _player1;
             _state = GameState.DONE;
 
-            AddMove(Move.MoveType.QUIT, quitterId);
+            AddMove(MoveType.QUIT, quitterId);
         }
 
-        internal int AddMove(Move.MoveType type, string player, int? column = null)
+        internal int AddMove(MoveType type, string player, int? column = null)
         {
             VerifyPlayerPartOfGame(player);
             VerifyItIsPlayerTurn(player);
 
-            if (type == Move.MoveType.MOVE)
+            if (type == MoveType.MOVE)
             {
                 VerifyColumnExists(column);
                 VerifyColumnHasRoom((int)column);
@@ -124,6 +124,13 @@ namespace _9dt.Models
         public Move GetLastMove()
         {
             return Moves.Last();
+        }
+
+        internal Move GetMove(int moveNumber)
+        {
+            if (moveNumber >= Moves.Count() || moveNumber < 0)
+                throw new MoveNotFoundException();
+            return Moves[moveNumber];
         }
     }
 }

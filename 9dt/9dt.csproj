@@ -100,6 +100,7 @@
   <ItemGroup>
     <Compile Include="App_Start\SwaggerConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Exceptions\MoveNotFoundException.cs" />
     <Compile Include="Exceptions\PlayerMovedOutOfTurnException.cs" />
     <Compile Include="Exceptions\IllegalMoveException.cs" />
     <Compile Include="Exceptions\PlayerNotFoundException.cs" />
@@ -110,6 +111,7 @@
     <Compile Include="Exceptions\NumberOfPlayersMustBeTwoException.cs" />
     <Compile Include="Models\RequestModels\MakeMove.cs" />
     <Compile Include="Models\ResponseModels\GameId.cs" />
+    <Compile Include="Models\ResponseModels\Move.cs" />
     <Compile Include="Models\ResponseModels\GameStatus.cs" />
     <Compile Include="Models\RequestModels\NewGame.cs" />
     <Compile Include="Controllers\DropTokenController.cs" />

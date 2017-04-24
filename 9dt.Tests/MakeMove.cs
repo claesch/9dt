@@ -177,7 +177,7 @@ namespace _9dt.Tests
 
         private void When_requesting_to_make_a_move(string player, int column)
         {
-            _response = _controller.RequestMove(_gameId, player, new Models.MakeMove { Column = column });
+            _response = _controller.CreateMove(_gameId, player, new Models.MakeMove { Column = column });
         }
 
         private void Then_the_move_number_is_returned(int expectedMoveNumber)
