@@ -6,8 +6,6 @@ using Swashbuckle.Swagger.Annotations;
 using System.Net;
 using _9dt.Exceptions;
 using System.Collections.Generic;
-using static _9dt.Models.Move;
-using System;
 
 namespace _9dt.Controllers
 {
@@ -108,6 +106,20 @@ namespace _9dt.Controllers
             var game = GetGame(gameId);
             var move = game.GetMove(moveNumber);
             return new MoveResponse { Column = move.Column, Player = move.Player, Type = move.Type };
+        }
+
+        [SwaggerResponse(HttpStatusCode.OK)]
+        [SwaggerResponse(HttpStatusCode.BadRequest)]
+        [SwaggerResponse(HttpStatusCode.NotFound)]
+        [Route("drop_token/{gameId}/moves")]
+        [HttpGet]
+        public List<MoveResponse> GetMoves(string gameId, int? start = null, int? until = null)
+        {
+            if (start != null && until != null && start > until)
+                throw new StartAndEndIndexMismatchException();
+            var game = GetGame(gameId);
+            var moves = game.GetMoves(start, until);
+            return moves.Select(move => new MoveResponse { Column = move.Column, Player = move.Player, Type = move.Type }).ToList();
         }
     }
 }

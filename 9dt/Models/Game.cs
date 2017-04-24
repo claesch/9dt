@@ -132,5 +132,25 @@ namespace _9dt.Models
                 throw new MoveNotFoundException();
             return Moves[moveNumber];
         }
+
+        internal List<Move> GetMoves(int? start, int? end)
+        {
+            VerifyStartAndEndDate(start, end);
+
+            if (Moves.Count() == 0)
+            { return Moves; }
+
+            int startIndex = start ?? 0;
+            int endIndex = end ?? Moves.Count() - 1;
+            return Moves.GetRange(startIndex, endIndex - startIndex);
+        }
+
+        private void VerifyStartAndEndDate(int? start, int? end)
+        {
+            if (start != null && (start < 0 || start >= Moves.Count()))
+                throw new MoveNotFoundException();
+            if (end != null && (end < 0 || end >= Moves.Count()))
+                throw new MoveNotFoundException();
+        }
     }
 }

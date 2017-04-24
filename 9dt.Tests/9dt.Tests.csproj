@@ -65,6 +65,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GetMoves.cs" />
     <Compile Include="GetMove.cs" />
     <Compile Include="MakeMove.cs" />
     <Compile Include="PlayerQuits.cs" />
