@@ -81,21 +81,43 @@ namespace _9dt.Models
         internal int AddMove(Move.MoveType type, string player, int? column = null)
         {
             VerifyPlayerPartOfGame(player);
+            VerifyItIsPlayerTurn(player);
 
             if (type == Move.MoveType.MOVE)
             {
-                if (column == null || column < 0 || column > 3)
-                    throw new IllegalMoveException();
+                VerifyColumnExists(column);
+                VerifyColumnHasRoom((int)column);
             }
 
             Moves.Add(new Move(type, player, column));
             return Moves.Count() - 1;
+        }
+        private void VerifyColumnExists(int? column)
+        {
+            if (column == null || column < 0 || column > _columns - 1)
+                throw new IllegalMoveException();
+        }
+
+        private void VerifyColumnHasRoom(int column)
+        {
+            var columnRows = Moves.Where(m => m.Column == column).Count();
+            if (columnRows >= _rows)
+                throw new IllegalMoveException();
         }
 
         private void VerifyPlayerPartOfGame(string player)
         {
             if (_player1 != player && _player2 != player)
                 throw new PlayerNotFoundException();
+        }
+
+        private void VerifyItIsPlayerTurn(string player)
+        {
+            if ((player == _player1 && Moves.Count() % 2 != 0) ||
+                (player == _player2 && Moves.Count() % 2 != 1))
+            {
+                throw new PlayerMovedOutOfTurnException();
+            }
         }
 
         [Obsolete]

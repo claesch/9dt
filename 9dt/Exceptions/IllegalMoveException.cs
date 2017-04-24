@@ -5,7 +5,7 @@ namespace _9dt.Exceptions
 {
     public class IllegalMoveException : HttpResponseException
     {
-        public IllegalMoveException() : base(HttpStatusCode.Conflict)
+        public IllegalMoveException() : base(HttpStatusCode.BadRequest)
         {
         }
     }

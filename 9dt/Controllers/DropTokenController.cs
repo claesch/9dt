@@ -6,7 +6,6 @@ using Swashbuckle.Swagger.Annotations;
 using System.Net;
 using _9dt.Exceptions;
 using System.Collections.Generic;
-using System;
 using static _9dt.Models.Move;
 
 namespace _9dt.Controllers
@@ -83,12 +82,17 @@ namespace _9dt.Controllers
         }
 
         [SwaggerResponse(HttpStatusCode.OK)]
+        [SwaggerResponse(HttpStatusCode.BadRequest)]
+        [SwaggerResponse(HttpStatusCode.NotFound)]
         [SwaggerResponse(HttpStatusCode.Conflict)]
         [Route("drop_token/{gameId}/{playerId}")]
         [HttpPost]
-        public MakeMoveResponse RequestMove(string gameId, string playerId, MakeMove request)
+        public MakeMoveResponse RequestMove(string gameId, string playerId, [FromBody]MakeMove request)
         {
             var game = GetGame(gameId);
+            if(request?.Column == null)
+                throw new HttpResponseException(HttpStatusCode.BadRequest);
+
             var moveNumber = game.AddMove(MoveType.MOVE, playerId, request.Column);
             return new MakeMoveResponse(gameId, moveNumber);
         }

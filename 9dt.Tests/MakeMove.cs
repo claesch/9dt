@@ -28,61 +28,7 @@ namespace _9dt.Tests
      * 400 - Malformed input. Illegal move
      * 404 - Game not found or player is not a part of it.
      * 409 - Player tried to post when it's not their turn.
- 
-
-    Given a game in progress
-        And a known player in the game
-
-    And a request to make a move
-    And it is the players turn
-    And the column has open spaces
-When requesting to make a move
-Then the move is successful
-    And the move number is returned
-    And the move is included in the moves list
-
-        //Request for invalid column
-
-Given a game in progress
-    And a unknown player in the game
-
-    And a request to make a move
-When requesting to make a move
-Then an error is returned
-    And the error indicates the player is unknown
-
-Given a request for a game status with an unknown id
-    And a request to make a move
-When requesting to make a move
-Then an error is returned
-    And the error indicates the game is unknown
-
-Given a game in progress
-    And a malformed request to make a move
-When requesting to make a move
-Then an error is returned
-    And the error indicates the request is malformed
-
-Given a game in progress
-    And a known player in the game
-
-    And a request to make a move
-    And it is not the players turn
-When requesting to make a move
-Then an error is returned
-    And the error indicates it is not the players turn
-
-Given a game in progress
-    And a known player in the game
-
-    And a malformed request to make a move
-
-    And it is the players turn
-    And the column does not have open spaces
-When requesting to make a move
-Then an error is returned
-    And the error indicates the move is not allowed
-        */
+*/
 
     public class MakeMove : TestFixtureBase
     {
@@ -123,8 +69,64 @@ Then an error is returned
             exception.Should().BeTrue();
         }
 
+        [TestCase(0, "player1")]
+        [TestCase(1, "player0")]
+        [TestCase(2, "player1")]
+        public void PlayerGoesOutOfTurn(int moveNumber, string outOfTurnPlayer)
+        {
+            bool exception = false;
+            _players = new[] { "player0", "player1"};
+            Given_a_game_in_progress();
+            var currentMove = 0;
+            while (currentMove < moveNumber)
+            {
+                When_requesting_to_make_a_move($"player{currentMove%2}", currentMove%4);
+                currentMove++;
+            }
+            try
+            {
+                When_requesting_to_make_a_move(outOfTurnPlayer, 0);
+            }
+            catch (Exception ex)
+            {
+                Then_an_error_is_thrown(ex);
+                And_the_error_indicates<PlayerMovedOutOfTurnException>(ex);
+                exception = true;
+            }
+            exception.Should().BeTrue();
+        }
         [Test]
-        public void PlayerThatDoesNotExistRequestsAMove()
+        public void ColumnOutOfSpace()
+        {
+            bool exception = false;
+            _players = CreatePlayersArray(2);
+            Given_a_game_in_progress();
+            And_a_column_is_full(0, 0);
+            try
+            {
+                When_requesting_to_make_a_move(_players[0], 0);
+            }
+            catch (Exception ex)
+            {
+                Then_an_error_is_thrown(ex);
+                And_the_error_indicates<IllegalMoveException>(ex);
+                exception = true;
+            }
+            exception.Should().BeTrue();
+        }
+
+        private void And_a_column_is_full(int gamesMovesSoFar, int column)
+        {
+            var currentMove = gamesMovesSoFar;
+            while (currentMove < 4)
+            {
+                When_requesting_to_make_a_move(_players[currentMove%2], 0);
+                currentMove++;
+            }
+        }
+
+        [Test]
+        public void UnknownPlayerRequestsAMove()
         {
             bool exception = false;
             _players = CreatePlayersArray(2);
@@ -142,11 +144,35 @@ Then an error is returned
             exception.Should().BeTrue();
         }
 
+        [Test]
+        public void RequestMoveForUnknownGame()
+        {
+            bool exception = false;
+            _players = CreatePlayersArray(2);
+            Given_an_unknown_game();
+            try
+            {
+                When_requesting_to_make_a_move(_players[0], 0);
+            }
+            catch (Exception ex)
+            {
+                Then_an_error_is_thrown(ex);
+                And_the_error_indicates<GameNotFoundException>(ex);
+                exception = true;
+            }
+            exception.Should().BeTrue();
+        }
+
         #region Methods
         private void Given_a_game_in_progress()
         {
             var createResponse = _controller.CreateGame(new NewGame { Players = _players, Rows = 4, Columns = 4 });
             _gameId = createResponse.Id;
+        }
+
+        private void Given_an_unknown_game()
+        {
+            _gameId = "XXXX";
         }
 
         private void When_requesting_to_make_a_move(string player, int column)
