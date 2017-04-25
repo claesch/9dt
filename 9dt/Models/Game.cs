@@ -33,10 +33,10 @@ namespace _9dt.Models
 
     public class Game
     {
-        private string _player1;
-        private string _player2;
-        private int _rows;
-        private int _columns;
+        private readonly string _player1;
+        private readonly string _player2;
+        private readonly int _rows;
+        private readonly int _columns;
         private GameState _state;
         private string _winner = null;
 
@@ -65,6 +65,11 @@ namespace _9dt.Models
             _state = GameState.DONE;
         }
 
+        private void SetDraw()
+        {
+            _state = GameState.DONE;
+        }
+
         internal void Quit(string quitterId)
         {
             VerifyPlayerPartOfGame(quitterId);
@@ -72,10 +77,10 @@ namespace _9dt.Models
             if (_state == GameState.DONE)
                 throw new MoveNotAllowedException();
 
-            _winner = (_player1 == quitterId) ? _player2 : _player1;
-            _state = GameState.DONE;
-
             AddMove(MoveType.QUIT, quitterId);
+
+            var winner = (_player1 == quitterId) ? _player2 : _player1;
+            SetWinner(winner);
         }
 
         internal int AddMove(MoveType type, string player, int? column = null)
@@ -83,15 +88,56 @@ namespace _9dt.Models
             VerifyPlayerPartOfGame(player);
             VerifyItIsPlayerTurn(player);
 
-            if (type == MoveType.MOVE)
+            switch (type)
             {
-                VerifyColumnExists(column);
-                VerifyColumnHasRoom((int)column);
+                case MoveType.QUIT:
+                    Moves.Add(new Move(type, player));
+                    break;
+                case MoveType.MOVE:
+                    VerifyColumnExists(column);
+                    VerifyColumnHasRoom((int)column);
+                    Moves.Add(new Move(type, player, column));
+                    if (IsGameWon(player, (int)column))
+                    {
+                        SetWinner(player);
+                    }
+                    else if (Moves.Count == _rows * _columns)
+                    {
+                        SetDraw();
+                    }
+                    break;
+                default:
+                    throw new NotImplementedException();
             }
 
-            Moves.Add(new Move(type, player, column));
             return Moves.Count() - 1;
         }
+
+        internal Move GetMove(int moveNumber)
+        {
+            if (moveNumber >= Moves.Count() || moveNumber < 0)
+                throw new MoveNotFoundException();
+            return Moves[moveNumber];
+        }
+
+        internal List<Move> GetMoves(int? start, int? end)
+        {
+            VerifyStartAndEndDate(start, end);
+
+            if (Moves.Count() == 0)
+            { return Moves; }
+
+            int startIndex = start ?? 0;
+            int endIndex = end ?? Moves.Count() - 1;
+            return Moves.GetRange(startIndex, endIndex - startIndex + 1);
+        }
+
+        private bool IsGameWon(string player, int column)
+        {
+            var colMovesForPlayer = Moves.Where(m => m.Column == column && m.Player == player);
+            return colMovesForPlayer.Count() == 4;
+        }
+
         private void VerifyColumnExists(int? column)
         {
             if (column == null || column < 0 || column > _columns - 1)
@@ -118,31 +164,6 @@ namespace _9dt.Models
             {
                 throw new PlayerMovedOutOfTurnException();
             }
-        }
-
-        [Obsolete]
-        public Move GetLastMove()
-        {
-            return Moves.Last();
-        }
-
-        internal Move GetMove(int moveNumber)
-        {
-            if (moveNumber >= Moves.Count() || moveNumber < 0)
-                throw new MoveNotFoundException();
-            return Moves[moveNumber];
-        }
-
-        internal List<Move> GetMoves(int? start, int? end)
-        {
-            VerifyStartAndEndDate(start, end);
-
-            if (Moves.Count() == 0)
-            { return Moves; }
-
-            int startIndex = start ?? 0;
-            int endIndex = end ?? Moves.Count() - 1;
-            return Moves.GetRange(startIndex, endIndex - startIndex);
         }
 
         private void VerifyStartAndEndDate(int? start, int? end)

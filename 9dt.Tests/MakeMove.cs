@@ -4,7 +4,6 @@ using FluentAssertions;
 using NUnit.Framework;
 using System;
 using System.Linq;
-using static _9dt.Models.Move;
 
 namespace _9dt.Tests
 {
@@ -29,12 +28,34 @@ namespace _9dt.Tests
      * 404 - Game not found or player is not a part of it.
      * 409 - Player tried to post when it's not their turn.
 */
+    //TODO: End game scenarios
+
+    //Given a game in progress
+    //And a player has three moves in succession in a column
+    //    When the player places the fourth move in the same column
+    //    Then the game is done
+    //    And the player is the winner
+
+    //Given a game in progress
+    //And a player has three moves in succession in a row
+    //When the player places the fourth move in the same row
+    //Then the game is done
+    //And the player is the winner
+
+    //Given a game in progress
+    //And a player has three moves in succession on a diagonal
+    //When the player places the fourth move in the same diagonal
+    //Then the game is done
+    //And the player is the winner
+
+
 
     public class MakeMove : TestFixtureBase
     {
         private string _gameId;
         private string[] _players;
         private MakeMoveResponse _response;
+        private GameStatus _status;
 
         [TestCase(0)]
         [TestCase(1)]
@@ -47,6 +68,42 @@ namespace _9dt.Tests
             When_requesting_to_make_a_move(_players[0], columnNumber);
             Then_the_move_number_is_returned(0);
             And_the_move_is_included_in_the_moves_list(_players[0], columnNumber, 0);
+        }
+
+        //Given a game in progress
+        //And there will be no winner
+        //When the last move is made
+        //Then the game is done 
+        //And there is no winner
+        [Test]
+        public void GameEndsInDraw()
+        {
+            _players = new[] { "player0", "player1" };
+
+            Given_a_game_in_progress();
+            And_there_will_be_no_winner();
+            When_the_last_move_is_made();
+            Then_the_game_is_done();
+            And_there_is_no_winner();
+        }
+
+        //Given a game in progress
+        //And a player has three moves in succession in a column
+        //    When the player places the fourth move in the same column
+        //    Then the game is done
+        //    And the player is the winner
+        [TestCase(0, "player1")]
+        [TestCase(1, "player0")]
+        [TestCase(2, "player1")]
+        [TestCase(3, "player0")]
+        public void PlayerWinsWithFourInColumn(int column, string winner)
+        {
+            _players = new[] { "player0", "player1" };
+            Given_a_game_in_progress();
+            And_a_player_has_three_moves_in_succession_in_a_column(column, winner);
+            When_the_player_places_the_fourth_move_in_the_same_column(column, winner);
+            Then_the_game_is_done();
+            And_the_player_is_the_winner(winner);
         }
 
         [TestCase(-1)]
@@ -75,12 +132,12 @@ namespace _9dt.Tests
         public void PlayerGoesOutOfTurn(int moveNumber, string outOfTurnPlayer)
         {
             bool exception = false;
-            _players = new[] { "player0", "player1"};
+            _players = new[] { "player0", "player1" };
             Given_a_game_in_progress();
             var currentMove = 0;
             while (currentMove < moveNumber)
             {
-                When_requesting_to_make_a_move($"player{currentMove%2}", currentMove%4);
+                When_requesting_to_make_a_move($"player{currentMove % 2}", currentMove % 4);
                 currentMove++;
             }
             try
@@ -120,7 +177,7 @@ namespace _9dt.Tests
             var currentMove = gamesMovesSoFar;
             while (currentMove < 4)
             {
-                When_requesting_to_make_a_move(_players[currentMove%2], 0);
+                When_requesting_to_make_a_move(_players[currentMove % 2], 0);
                 currentMove++;
             }
         }
@@ -189,13 +246,82 @@ namespace _9dt.Tests
 
         private void And_the_move_is_included_in_the_moves_list(string player, int col, int expectedMoveNumber)
         {
-            var moves = GetMoves(_gameId);
+            var moves = _controller.GetMoves(_gameId);
             var lastMove = moves.Last();
             lastMove.Should().NotBeNull();
             lastMove.Player.Should().Be(player);
             lastMove.Column.Should().Be(col);
             lastMove.Type.Should().Be(MoveType.MOVE);
-            (moves.Count -1).Should().Be(expectedMoveNumber);
+            (moves.Count - 1).Should().Be(expectedMoveNumber);
+        }
+
+
+        private void And_there_will_be_no_winner()
+        {
+            //First row //1  2  2  1
+            When_requesting_to_make_a_move(_players[0], 0);
+            When_requesting_to_make_a_move(_players[1], 1);
+            When_requesting_to_make_a_move(_players[0], 3);
+            When_requesting_to_make_a_move(_players[1], 2);
+
+            //Second row //2  1  1  2
+            When_requesting_to_make_a_move(_players[0], 1);
+            When_requesting_to_make_a_move(_players[1], 0);
+            When_requesting_to_make_a_move(_players[0], 2);
+            When_requesting_to_make_a_move(_players[1], 3);
+
+            //Third row //1  2  2  1
+            When_requesting_to_make_a_move(_players[0], 0);
+            When_requesting_to_make_a_move(_players[1], 1);
+            When_requesting_to_make_a_move(_players[0], 3);
+            When_requesting_to_make_a_move(_players[1], 2);
+
+            //Fourth row //2  1  1  2
+            When_requesting_to_make_a_move(_players[0], 1);
+            When_requesting_to_make_a_move(_players[1], 0);
+            When_requesting_to_make_a_move(_players[0], 2);
+        }
+
+        private void When_the_last_move_is_made()
+        {
+            When_requesting_to_make_a_move(_players[1], 3);
+            _status = _controller.GetStatus(_gameId);
+        }
+        private void Then_the_game_is_done()
+        {
+            _status.State.Should().Be(GameState.DONE);
+        }
+        private void And_there_is_no_winner()
+        {
+            _status.Winner.Should().BeNull();
+        }
+
+
+        private void And_a_player_has_three_moves_in_succession_in_a_column(int winnerColumn, string winner)
+        {
+            var loser = _players.Except(new[] { winner }).First();
+            if (loser == _players[0]) //loser plays first
+            {
+                var playOffCol = winnerColumn < 2 ? winnerColumn + 2 : winnerColumn - 2;
+                When_requesting_to_make_a_move(loser, playOffCol);
+            }
+
+            var loserColumn = winnerColumn < 3 ? winnerColumn + 1 : 0;
+            When_requesting_to_make_a_move(winner, winnerColumn);
+            When_requesting_to_make_a_move(loser, loserColumn);
+            When_requesting_to_make_a_move(winner, winnerColumn);
+            When_requesting_to_make_a_move(loser, loserColumn);
+            When_requesting_to_make_a_move(winner, winnerColumn);
+            When_requesting_to_make_a_move(loser, loserColumn);
+        }
+        private void When_the_player_places_the_fourth_move_in_the_same_column(int column, string winner)
+        {
+            When_requesting_to_make_a_move(winner, column);
+            _status = _controller.GetStatus(_gameId);
+        }
+        private void And_the_player_is_the_winner(string player)
+        {
+            _status.Winner.Should().Be(player);
         }
 
         #endregion

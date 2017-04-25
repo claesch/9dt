@@ -139,7 +139,7 @@ namespace _9dt.Tests
 
         private void And_the_moves_indicate_the_player_has_quit(string quitter)
         {
-            var lastMove = base.GetMoves(_gameId).Last();
+            var lastMove = _controller.GetMoves(_gameId).Last();
             lastMove.Player.Should().Be(quitter);
             lastMove.Type.Should().Be(MoveType.QUIT);
         }

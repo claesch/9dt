@@ -179,7 +179,7 @@ namespace _9dt.Tests
             int expectedEnd = end ?? _moves.Count - 1;
             
 
-            var movesSubset = _moves.GetRange(expectedStart, (expectedEnd - expectedStart));
+            var movesSubset = _moves.GetRange(expectedStart, (expectedEnd - expectedStart + 1));
 
             for (var i = 0; i < _response.Count; i++)
             {
