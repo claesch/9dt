@@ -19,14 +19,16 @@ namespace _9dt.Models
 
     public struct Move
     {
-        public Move(MoveType type, string player, int? column = null)
+        public Move(MoveType type, string player, int? column = null, int? row= null)
         {
             Type = type;
             Column = column;
             Player = player;
+            Row = row;
         }
         public MoveType Type { get; }
         public int? Column { get; }
+        internal int? Row { get; }
         public string Player { get; }
     }
 
@@ -45,7 +47,7 @@ namespace _9dt.Models
         public string Winner { get { return _winner; } }
         public string Player1 { get { return _player1; } }
         public string Player2 { get { return _player2; } }
-        public List<Move> Moves { get; } 
+        public List<Move> Moves { get; }
 
         public Game(string player1, string player2, int rows = 4, int columns = 4)
         {
@@ -95,9 +97,9 @@ namespace _9dt.Models
                     break;
                 case MoveType.MOVE:
                     VerifyColumnExists(column);
-                    VerifyColumnHasRoom((int)column);
-                    Moves.Add(new Move(type, player, column));
-                    if (IsGameWon(player, (int)column))
+                    var row = VerifyColumnHasRoom((int)column);
+                    Moves.Add(new Move(type, player, column, row));
+                    if (IsGameWon(player, (int)column, row))
                     {
                         SetWinner(player);
                     }
@@ -122,7 +124,7 @@ namespace _9dt.Models
 
         internal List<Move> GetMoves(int? start, int? end)
         {
-            VerifyStartAndEndDate(start, end);
+            VerifyStartAndEndIndex(start, end);
 
             if (Moves.Count() == 0)
             { return Moves; }
@@ -132,10 +134,39 @@ namespace _9dt.Models
             return Moves.GetRange(startIndex, endIndex - startIndex + 1);
         }
 
-        private bool IsGameWon(string player, int column)
+        //NOTE: Assumes 4x4
+        private bool IsGameWon(string player, int column, int row)
         {
             var colMovesForPlayer = Moves.Where(m => m.Column == column && m.Player == player);
-            return colMovesForPlayer.Count() == 4;
+            if (colMovesForPlayer.Count() == 4)
+                return true;
+            var rowMovesForPlayer = Moves.Where(m => m.Row == row && m.Player == player);
+            if (rowMovesForPlayer.Count() == 4)
+                return true;
+            if (Moves.Count() >= 10)
+            {
+                if(DescendingDiagonalExists(3, 0, player))
+                    return true;
+                if (AscendingDiagonalExists(0, 0, player))
+                    return true;
+            }
+            return false;
+        }
+
+        private bool DescendingDiagonalExists(int row, int column, string player)
+        {
+            if (row < 0 || column >= _columns - 1) return true;
+            if (Moves.Any(m => m.Row == row && m.Column == column && m.Player == player))
+                return DescendingDiagonalExists(row-1, column+1, player);
+            return false;
+        }
+
+        private bool AscendingDiagonalExists(int row, int column, string player)
+        {
+            if (row >= _rows - 1 || column >= _columns - 1) return true;
+            if (Moves.Any(m => m.Row == row && m.Column == column && m.Player == player))
+                return AscendingDiagonalExists(row+1, column+1, player);
+            return false;
         }
 
         private void VerifyColumnExists(int? column)
@@ -144,11 +175,12 @@ namespace _9dt.Models
                 throw new IllegalMoveException();
         }
 
-        private void VerifyColumnHasRoom(int column)
+        private int VerifyColumnHasRoom(int column)
         {
             var columnRows = Moves.Where(m => m.Column == column).Count();
             if (columnRows >= _rows)
                 throw new IllegalMoveException();
+            return columnRows;
         }
 
         private void VerifyPlayerPartOfGame(string player)
@@ -166,7 +198,7 @@ namespace _9dt.Models
             }
         }
 
-        private void VerifyStartAndEndDate(int? start, int? end)
+        private void VerifyStartAndEndIndex(int? start, int? end)
         {
             if (start != null && (start < 0 || start >= Moves.Count()))
                 throw new MoveNotFoundException();
