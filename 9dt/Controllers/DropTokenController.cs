@@ -59,11 +59,13 @@ namespace _9dt.Controllers
             if (createGame.Players.Count() != 2)
                 throw new NumberOfPlayersMustBeTwoException();
             if (createGame.Players[0] == createGame.Players[1])
-                throw new PlayersCannotHaveSameNameException();
+                throw new PlayerNameException();
+            if (createGame.Players.Any(p => p == null || p == ""))
+                throw new PlayerNameException();
             if (createGame.Rows < 4 || createGame.Columns < 4)
                 throw new RowsColumnsCannotBeLessThanFourException();
 
-            var game = new Game(createGame.Players[0], createGame.Players[1]);
+            var game = new Game(createGame.Players[0], createGame.Players[1], createGame.Rows, createGame.Columns);
             _games.Add(game);
             return new GameId { Id = game.Id };
         }

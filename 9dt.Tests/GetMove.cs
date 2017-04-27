@@ -45,7 +45,7 @@ namespace _9dt.Tests
         [TestCase(0, 0)]
         [TestCase(1, 1)]
         [TestCase(3, 4)]
-        public void MovesThatDoesNotExistIsRequested(int numberOfMoves, int requestedMove)
+        public void MoveThatDoesNotExistIsRequested(int numberOfMoves, int requestedMove)
         {
             var error = false;
             Given_a_game();

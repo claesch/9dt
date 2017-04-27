@@ -28,7 +28,7 @@ namespace _9dt.Models
         public List<BaseMove> Moves { get; }
         public string[,] Board { get; private set; }
 
-        public Game(string player1, string player2, int rows = 4, int columns = 4)
+        public Game(string player1, string player2, int rows, int columns)
         {
             Id = Guid.NewGuid().ToString();
             _player1 = player1;
@@ -84,7 +84,6 @@ namespace _9dt.Models
             return Moves.Count() - 1;
         }
 
-        //TODO Check edge cases on this one
         internal BaseMove GetMove(int moveNumber)
         {
             if (moveNumber >= Moves.Count() || moveNumber < 0)
@@ -144,7 +143,7 @@ namespace _9dt.Models
             if (rowCount >= 4)
                 return true;
 
-            //Column check
+            //Column check -- only have to check below move when checking for column since none could be above
             var currentRow = move.Row - 1;
             while (currentRow >= 0 && rowCount < 4)
             {
@@ -152,14 +151,6 @@ namespace _9dt.Models
                     colCount++;
                 else break;
                 currentRow--;
-            }
-            currentRow = move.Row + 1;
-            while (currentRow < _rows && rowCount < 4)
-            {
-                if (IsPlayerInSpot(move.Player, move.Column, currentRow))
-                    colCount++;
-                else break;
-                currentRow++;
             }
             if (colCount >= 4)
                 return true;

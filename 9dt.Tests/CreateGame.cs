@@ -29,22 +29,35 @@ namespace _9dt.Tests
     {
         private NewGame _request;
         private GameId _createResponse;
+        private string[] _players;
+        private string _gameId;
+        int _playCount;
 
-        [Test]
-        public void CreatingGameSucessfully()
+        [TestCase("player1", "player2", 4 , 4)]
+        [TestCase("player 1", "player 2", 4, 4)]
+        [TestCase("player1", "player2", 5, 5)]
+        [TestCase("player1", "player2", 9, 7)]
+        [TestCase("player1", "player2", 32, 45)]
+        public void CreatingGameSucessfully(string player1, string player2, int columns, int rows)
         {
-            Given_a_request_for_a_new_game(CreatePlayersArray(2), 4, 4);
+            _playCount = 0;
+            _players = new[] { player1, player2 };
+            Given_a_request_for_a_new_game(_players, rows, columns);
             When_creating_a_new_game();
             Then_a_new_game_is_created();
             And_a_game_id_is_returned();
-            
+            And_a_play_can_be_made_in_every_column(columns);
+            And_a_play_can_be_made_in_every_row(rows);
         }
 
-        [Test]
-        public void CreatingGameWithSameNamePlayersThrowsError()
+        [TestCase("player", "player")]
+        [TestCase(null, "player")]
+        [TestCase("player", null)]
+        [TestCase("player", "")]
+        public void CreatingGameWithSameNamePlayersThrowsError(string player1, string player2)
         {
             bool exception = false;
-            Given_a_request_for_a_new_game(new[] { "Player", "Player" }, 4, 4);
+            Given_a_request_for_a_new_game(new[] { player1, player2 }, 4, 4);
             try
             {
                 When_creating_a_new_game();
@@ -53,7 +66,7 @@ namespace _9dt.Tests
             {
                 exception = true;
                 Then_an_error_is_thrown(ex);
-                And_the_error_indicates<PlayersCannotHaveSameNameException>(ex);
+                And_the_error_indicates<PlayerNameException>(ex);
             }
             if (!exception)
                 throw new Exception("Expected exception");
@@ -119,11 +132,28 @@ namespace _9dt.Tests
 
         private void And_a_game_id_is_returned()
         {
+            _gameId = _createResponse.Id;
             _createResponse.Id.Should().NotBeNullOrWhiteSpace();
             _createResponse.Id.Length.Should().Be(36);
             _createResponse.Id.Should().NotBe(new Guid().ToString());
         }
 
+        private void And_a_play_can_be_made_in_every_column(int totalColumns)
+        {
+            for (var i = 0; i < totalColumns; i++)
+            {
+                _controller.CreateMove(_gameId, _players[_playCount % 2], new Models.MakeMove { Column = i });
+                _playCount++;
+            }
+        }
+        private void And_a_play_can_be_made_in_every_row(int totalRows)
+        {
+            for (var i = 1; i < totalRows; i++)
+            {
+                _controller.CreateMove(_gameId, _players[_playCount % 2], new Models.MakeMove { Column = 0 });
+                _playCount++;
+            }
+        }
         #endregion
     }
 }

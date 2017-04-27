@@ -109,7 +109,7 @@
     <Compile Include="Exceptions\GameNotFoundException.cs" />
     <Compile Include="Exceptions\MoveNotAllowedException.cs" />
     <Compile Include="Exceptions\RowsColumnsCannotBeLessThanFourException.cs" />
-    <Compile Include="Exceptions\PlayersCannotHaveSameNameException.cs" />
+    <Compile Include="Exceptions\PlayerNameException.cs" />
     <Compile Include="Exceptions\NumberOfPlayersMustBeTwoException.cs" />
     <Compile Include="Models\Move.cs" />
     <Compile Include="Models\RequestModels\MakeMove.cs" />
