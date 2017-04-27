@@ -1,11 +1,10 @@
 ﻿using System.Net;
-using System.Web.Http;
 
 namespace _9dt.Exceptions
 {
-    public class PlayerMovedOutOfTurnException : HttpResponseException
+    public class PlayerMovedOutOfTurnException : BaseException
     {
-        public PlayerMovedOutOfTurnException() : base(HttpStatusCode.Conflict)
+        public PlayerMovedOutOfTurnException() : base(HttpStatusCode.Conflict, "Player moved out of turn")
         {
         }
     }

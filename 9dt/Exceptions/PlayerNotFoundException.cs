@@ -1,11 +1,10 @@
 ﻿using System.Net;
-using System.Web.Http;
 
 namespace _9dt.Exceptions
 {
-    public class PlayerNotFoundException : HttpResponseException
+    public class PlayerNotFoundException : BaseException
     {
-            public PlayerNotFoundException() : base(HttpStatusCode.NotFound)
+            public PlayerNotFoundException() : base(HttpStatusCode.NotFound, "The requested player is not part of this game")
         {
         }
     }

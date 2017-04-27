@@ -1,11 +1,10 @@
 ﻿using System.Net;
-using System.Web.Http;
 
 namespace _9dt.Exceptions
 {
-    public class NumberOfPlayersMustBeTwoException : HttpResponseException
+    public class NumberOfPlayersMustBeTwoException : BaseException
     {
-            public NumberOfPlayersMustBeTwoException() : base(HttpStatusCode.BadRequest)
+        public NumberOfPlayersMustBeTwoException() : base(HttpStatusCode.BadRequest, "This game can only be played by two players")
         {
         }
     }

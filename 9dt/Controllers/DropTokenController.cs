@@ -92,7 +92,7 @@ namespace _9dt.Controllers
             if(request?.Column == null)
                 throw new HttpResponseException(HttpStatusCode.BadRequest);
 
-            var moveNumber = game.AddMove(MoveType.MOVE, playerId, request.Column);
+            var moveNumber = game.AddMove(playerId, request.Column);
             return new MakeMoveResponse(gameId, moveNumber);
         }
 
@@ -105,7 +105,7 @@ namespace _9dt.Controllers
         {
             var game = GetGame(gameId);
             var move = game.GetMove(moveNumber);
-            return new MoveResponse { Column = move.Column, Player = move.Player, Type = move.Type };
+            return new MoveResponse { Column = GetColumn(move), Player = move.Player, Type = move.Type };
         }
 
         [SwaggerResponse(HttpStatusCode.OK)]
@@ -119,7 +119,12 @@ namespace _9dt.Controllers
                 throw new StartAndEndIndexMismatchException();
             var game = GetGame(gameId);
             var moves = game.GetMoves(start, until);
-            return moves.Select(move => new MoveResponse { Column = move.Column, Player = move.Player, Type = move.Type }).ToList();
+            return moves.Select(move => new MoveResponse { Column = GetColumn(move), Player = move.Player, Type = move.Type }).ToList();
+        }
+
+        private static int? GetColumn(BaseMove move)
+        {
+            return move.Type == MoveType.QUIT ? (int?)null : ((BoardMove)move).Column;
         }
     }
 }

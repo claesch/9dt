@@ -1,11 +1,10 @@
 ﻿using System.Net;
-using System.Web.Http;
 
 namespace _9dt.Exceptions
 {
-    public class IllegalMoveException : HttpResponseException
+    public class IllegalMoveException : BaseException
     {
-        public IllegalMoveException() : base(HttpStatusCode.BadRequest)
+        public IllegalMoveException(string message) : base(HttpStatusCode.BadRequest, $"Illegal move: {message}")
         {
         }
     }

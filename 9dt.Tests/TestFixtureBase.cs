@@ -41,13 +41,6 @@ namespace _9dt.Tests
             exception.Should().BeOfType<T>();
         }
 
-        [Obsolete]
-        protected void AndTheWinnerIs(string gameId, string player)
-        {
-            var game = _gamesRepo.First(g => g.Id == gameId);
-            game.SetWinner(player);
-        }
-
         protected string[] CreatePlayersArray(int numberOfPlayers)
         {
             var players = new string[numberOfPlayers];

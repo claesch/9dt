@@ -4,7 +4,6 @@ using FluentAssertions;
 using NUnit.Framework;
 using System;
 using System.Linq;
-using static _9dt.Models.Move;
 
 namespace _9dt.Tests
 {
@@ -21,7 +20,6 @@ namespace _9dt.Tests
         private string _gameId;
         private GameStatus _gameStatusResponse;
         private string[] _players;
-        private object _quitResponse;
 
         [Test]
         public void PlayerQuitsGameSuccessfully()
@@ -118,7 +116,7 @@ namespace _9dt.Tests
         private void Given_a_game_that_is_done()
         {
             Given_a_game_in_progress();
-            AndTheWinnerIs(_gameId, _players[0]);
+            _controller.Quit(_gameId, _players[0]);
         }
 
         private void When_a_player_requests_to_quit_the_game(string quitterId)

@@ -1,11 +1,10 @@
 ﻿using System.Net;
-using System.Web.Http;
 
 namespace _9dt.Exceptions
 {
-    public class MoveNotFoundException : HttpResponseException
+    public class MoveNotFoundException : BaseException
     {
-        public MoveNotFoundException() : base(HttpStatusCode.NotFound)
+        public MoveNotFoundException() : base(HttpStatusCode.NotFound, "The move requested could not be found")
         {
         }
     }

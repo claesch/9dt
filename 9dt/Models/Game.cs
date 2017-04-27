@@ -10,29 +10,7 @@ namespace _9dt.Models
         IN_PROGRESS,
         DONE
     }
-
-    public enum MoveType
-    {
-        QUIT,
-        MOVE
-    }
-
-    public struct Move
-    {
-        public Move(MoveType type, string player, int? column = null, int? row= null)
-        {
-            Type = type;
-            Column = column;
-            Player = player;
-            Row = row;
-        }
-        public MoveType Type { get; }
-        public int? Column { get; }
-        internal int? Row { get; }
-        public string Player { get; }
-    }
-
-
+    
     public class Game
     {
         private readonly string _player1;
@@ -47,29 +25,19 @@ namespace _9dt.Models
         public string Winner { get { return _winner; } }
         public string Player1 { get { return _player1; } }
         public string Player2 { get { return _player2; } }
-        public List<Move> Moves { get; }
+        public List<BaseMove> Moves { get; }
+        public string[,] Board { get; private set; }
 
         public Game(string player1, string player2, int rows = 4, int columns = 4)
         {
-            Moves = new List<Move>();
+            Id = Guid.NewGuid().ToString();
             _player1 = player1;
             _player2 = player2;
             _rows = rows;
             _columns = columns;
-            Id = Guid.NewGuid().ToString();
             _state = GameState.IN_PROGRESS;
-        }
-
-        [Obsolete]
-        public void SetWinner(string player)
-        {
-            _winner = player;
-            _state = GameState.DONE;
-        }
-
-        private void SetDraw()
-        {
-            _state = GameState.DONE;
+            Moves = new List<BaseMove>();
+            Board = new string[columns, rows];
         }
 
         internal void Quit(string quitterId)
@@ -77,52 +45,54 @@ namespace _9dt.Models
             VerifyPlayerPartOfGame(quitterId);
 
             if (_state == GameState.DONE)
-                throw new MoveNotAllowedException();
+                throw new MoveNotAllowedException("The game is already complete and cannot be quit");
 
-            AddMove(MoveType.QUIT, quitterId);
+            AddMove(new QuitMove(quitterId));
 
             var winner = (_player1 == quitterId) ? _player2 : _player1;
             SetWinner(winner);
         }
 
-        internal int AddMove(MoveType type, string player, int? column = null)
+        internal int AddMove(string player, int column)
         {
-            VerifyPlayerPartOfGame(player);
-            VerifyItIsPlayerTurn(player);
+            VerifyColumnExists(column);
+            var row = GetRowForMove(column);
+            var move = new BoardMove(player, column, row);
+            return AddMove(move);
+        }
 
-            switch (type)
+        private int AddMove(BaseMove move)
+        {
+            VerifyPlayerPartOfGame(move.Player);
+            VerifyItIsPlayerTurn(move.Player);
+            Moves.Add(move);
+
+            if (move.GetType() == typeof(BoardMove))
             {
-                case MoveType.QUIT:
-                    Moves.Add(new Move(type, player));
-                    break;
-                case MoveType.MOVE:
-                    VerifyColumnExists(column);
-                    var row = VerifyColumnHasRoom((int)column);
-                    Moves.Add(new Move(type, player, column, row));
-                    if (IsGameWon(player, (int)column, row))
-                    {
-                        SetWinner(player);
-                    }
-                    else if (Moves.Count == _rows * _columns)
-                    {
-                        SetDraw();
-                    }
-                    break;
-                default:
-                    throw new NotImplementedException();
+                var boardMove = (BoardMove)move;
+                Board[boardMove.Column, boardMove.Row] = boardMove.Player;
+                if (Moves.Count >= 7 && IsGameWon(boardMove))
+                {
+                    SetWinner(boardMove.Player);
+                }
+                else if (Moves.Count == _rows * _columns)
+                {
+                    SetDraw();
+                }
             }
 
             return Moves.Count() - 1;
         }
 
-        internal Move GetMove(int moveNumber)
+        //TODO Check edge cases on this one
+        internal BaseMove GetMove(int moveNumber)
         {
             if (moveNumber >= Moves.Count() || moveNumber < 0)
                 throw new MoveNotFoundException();
             return Moves[moveNumber];
         }
 
-        internal List<Move> GetMoves(int? start, int? end)
+        internal List<BaseMove> GetMoves(int? start, int? end)
         {
             VerifyStartAndEndIndex(start, end);
 
@@ -134,53 +104,138 @@ namespace _9dt.Models
             return Moves.GetRange(startIndex, endIndex - startIndex + 1);
         }
 
-        //NOTE: Assumes 4x4
-        private bool IsGameWon(string player, int column, int row)
+        private void SetWinner(string player)
         {
-            var colMovesForPlayer = Moves.Where(m => m.Column == column && m.Player == player);
-            if (colMovesForPlayer.Count() == 4)
-                return true;
-            var rowMovesForPlayer = Moves.Where(m => m.Row == row && m.Player == player);
-            if (rowMovesForPlayer.Count() == 4)
-                return true;
-            if (Moves.Count() >= 10)
+            _winner = player;
+            _state = GameState.DONE;
+        }
+
+        private void SetDraw()
+        {
+            _state = GameState.DONE;
+        }
+
+        private bool IsGameWon(BoardMove move)
+        {
+            var rowCount = 1;
+            var colCount = 1;
+            var increasingDiag = 1;
+            var decreasingDiag = 1;
+
+            //check row
+            var currentCol = move.Column - 1;
+            while (currentCol >= 0 && rowCount <= 4)
             {
-                if(DescendingDiagonalExists(3, 0, player))
-                    return true;
-                if (AscendingDiagonalExists(0, 0, player))
-                    return true;
+                if (IsPlayerInSpot(move.Player, currentCol, move.Row))
+                    rowCount++;
+                else
+                    break;
+                currentCol--;
             }
+
+            currentCol = move.Column + 1;
+            while (currentCol < _columns && rowCount < 4)
+            {
+                if (IsPlayerInSpot(move.Player, currentCol, move.Row))
+                    rowCount++;
+                else break;
+                currentCol++;
+            }
+            if (rowCount >= 4)
+                return true;
+
+            //Column check
+            var currentRow = move.Row - 1;
+            while (currentRow >= 0 && rowCount < 4)
+            {
+                if (IsPlayerInSpot(move.Player, move.Column, currentRow))
+                    colCount++;
+                else break;
+                currentRow--;
+            }
+            currentRow = move.Row + 1;
+            while (currentRow < _rows && rowCount < 4)
+            {
+                if (IsPlayerInSpot(move.Player, move.Column, currentRow))
+                    colCount++;
+                else break;
+                currentRow++;
+            }
+            if (colCount >= 4)
+                return true;
+
+            //check increasing diagonal
+            currentRow = move.Row - 1;
+            currentCol = move.Column - 1;
+            while (currentRow >= 0 && currentCol >=0 && increasingDiag < 4)
+            {
+                if (IsPlayerInSpot(move.Player, currentCol, currentRow))
+                    increasingDiag++;
+                else break;
+                currentRow--;
+                currentCol--;
+            }
+
+            currentRow = move.Row + 1;
+            currentCol = move.Column + 1;
+
+            while (currentRow < _rows && currentCol < _columns && increasingDiag < 4)
+            {
+                if (IsPlayerInSpot(move.Player, currentCol, currentRow))
+                    increasingDiag++;
+                else break;
+                currentRow++;
+                currentCol++;
+            }
+            if (increasingDiag >= 4)
+                return true;
+
+            //check decreasing diagonal
+            currentRow = move.Row + 1;
+            currentCol = move.Column - 1;
+            while (currentRow < _rows && currentCol >= 0 && decreasingDiag < 4)
+            {
+                if (IsPlayerInSpot(move.Player, currentCol, currentRow))
+                    decreasingDiag++;
+                else break;
+                currentRow++;
+                currentCol--;
+            }
+
+            currentRow = move.Row - 1;
+            currentCol = move.Column + 1;
+
+            while (currentRow >= 0 && currentCol < _columns && decreasingDiag < 4)
+            {
+                if (IsPlayerInSpot(move.Player, currentCol, currentRow))
+                    decreasingDiag++;
+                else break;
+                currentRow--;
+                currentCol++;
+            }
+            if (decreasingDiag >= 4)
+                return true;
+
             return false;
         }
 
-        private bool DescendingDiagonalExists(int row, int column, string player)
+        private bool IsPlayerInSpot(string player, int col, int row)
         {
-            if (row < 0 || column >= _columns - 1) return true;
-            if (Moves.Any(m => m.Row == row && m.Column == column && m.Player == player))
-                return DescendingDiagonalExists(row-1, column+1, player);
-            return false;
-        }
-
-        private bool AscendingDiagonalExists(int row, int column, string player)
-        {
-            if (row >= _rows - 1 || column >= _columns - 1) return true;
-            if (Moves.Any(m => m.Row == row && m.Column == column && m.Player == player))
-                return AscendingDiagonalExists(row+1, column+1, player);
-            return false;
+            return Board[col, row] == player;
         }
 
         private void VerifyColumnExists(int? column)
         {
             if (column == null || column < 0 || column > _columns - 1)
-                throw new IllegalMoveException();
+                throw new IllegalMoveException($"Column requested does not exist in the game. Valid column are 0 to {_columns - 1}.");
         }
 
-        private int VerifyColumnHasRoom(int column)
+        private int GetRowForMove(int column)
         {
-            var columnRows = Moves.Where(m => m.Column == column).Count();
-            if (columnRows >= _rows)
-                throw new IllegalMoveException();
-            return columnRows;
+            for (var row = 0; row < _rows; row++)
+                if (Board[column, row] == null)
+                    return row;
+            throw new IllegalMoveException("The requested column is full");
         }
 
         private void VerifyPlayerPartOfGame(string player)

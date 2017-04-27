@@ -1,11 +1,10 @@
 ﻿using System.Net;
-using System.Web.Http;
 
 namespace _9dt.Exceptions
 {
-    public class RowsColumnsCannotBeLessThanFourException : HttpResponseException
+    public class RowsColumnsCannotBeLessThanFourException : BaseException
     {
-            public RowsColumnsCannotBeLessThanFourException() : base(HttpStatusCode.BadRequest)
+        public RowsColumnsCannotBeLessThanFourException() : base(HttpStatusCode.BadRequest, "You must specify at least 4 rows and 4 columns")
         {
         }
     }

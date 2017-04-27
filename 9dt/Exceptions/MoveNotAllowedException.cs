@@ -1,11 +1,10 @@
 ﻿using System.Net;
-using System.Web.Http;
 
 namespace _9dt.Exceptions
 {
-    public class MoveNotAllowedException : HttpResponseException
+    public class MoveNotAllowedException : BaseException
     {
-        public MoveNotAllowedException() : base(HttpStatusCode.Gone)
+        public MoveNotAllowedException(string message) : base(HttpStatusCode.Gone, $"Move not allowed: {message}")
         {
         }
     }

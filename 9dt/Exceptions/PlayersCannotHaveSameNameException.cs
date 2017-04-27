@@ -1,11 +1,10 @@
 ﻿using System.Net;
-using System.Web.Http;
 
 namespace _9dt.Exceptions
 {
-    public class PlayersCannotHaveSameNameException : HttpResponseException
+    public class PlayersCannotHaveSameNameException : BaseException
     {
-        public PlayersCannotHaveSameNameException() : base(HttpStatusCode.BadRequest)
+        public PlayersCannotHaveSameNameException() : base(HttpStatusCode.BadRequest, "Unique player names are required")
         {
         }
     }

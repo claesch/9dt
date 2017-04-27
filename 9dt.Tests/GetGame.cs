@@ -92,11 +92,38 @@ namespace _9dt.Tests
         private void And_the_game_has_a_winner()
         {
             _winner = _players[1];
-            AndTheWinnerIs(_gameId, _winner);
+            _controller.Quit(_gameId, _players[0]);
         }
         private void And_the_game_is_a_draw()
         {
-            AndTheWinnerIs(_gameId, null);
+            //First row //1  2  2  1
+            MakeMove(_players[0], 0);
+            MakeMove(_players[1], 1);
+            MakeMove(_players[0], 3);
+            MakeMove(_players[1], 2);
+
+            //Second row //2  1  1  2
+            MakeMove(_players[0], 1);
+            MakeMove(_players[1], 0);
+            MakeMove(_players[0], 2);
+            MakeMove(_players[1], 3);
+
+            //Third row //1  2  2  1
+            MakeMove(_players[0], 0);
+            MakeMove(_players[1], 1);
+            MakeMove(_players[0], 3);
+            MakeMove(_players[1], 2);
+
+            //Fourth row //2  1  1  2
+            MakeMove(_players[0], 1);
+            MakeMove(_players[1], 0);
+            MakeMove(_players[0], 2);
+            MakeMove(_players[1], 3);
+        }
+
+        private void MakeMove(string player, int column)
+        {
+            _controller.CreateMove(_gameId, player, new Models.MakeMove { Column = column });
         }
 
         private void When_requesting_the_status_of_a_game()
