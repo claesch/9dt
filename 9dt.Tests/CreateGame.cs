@@ -96,6 +96,7 @@ namespace _9dt.Tests
         [TestCase(0, 0)]
         [TestCase(3, 4)]
         [TestCase(4, 3)]
+        [TestCase(-1, -2)]
         public void CreatingGameWithLessThanFourRowsOrColumnsThrowsError(int numberOfRows, int numberOfColumns)
         {
             bool exception = false;

@@ -32,7 +32,6 @@ namespace _9dt.Controllers
             return new GameIdList { Games = _games.Select(g => g.Id).ToList() };
         }
 
-        // GET: drop_token/598929-238428jfjklf...
         [SwaggerResponse(HttpStatusCode.OK)]
         [SwaggerResponse(HttpStatusCode.NotFound)]
         [HttpGet]
@@ -48,7 +47,6 @@ namespace _9dt.Controllers
             return status;
         }
 
-        // POST: drop_token
         [SwaggerResponse(HttpStatusCode.OK)]
         [SwaggerResponse(HttpStatusCode.BadRequest)]
         [HttpPost]
@@ -70,7 +68,6 @@ namespace _9dt.Controllers
             return new GameId { Id = game.Id };
         }
 
-        // DELETE: drop_token/37292-28372fa-234/player_1
         [SwaggerResponse(HttpStatusCode.OK)]
         [SwaggerResponse(HttpStatusCode.NotFound)]
         [SwaggerResponse(HttpStatusCode.Gone)]

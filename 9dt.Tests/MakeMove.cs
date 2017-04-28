@@ -107,6 +107,18 @@ namespace _9dt.Tests
             And_the_player_is_the_winner("player0");
         }
 
+        [TestCase("Ascending")]
+        [TestCase("Descending")]
+        public void PlayerWinsOnADiagonalOnALargeBoard(string direction)
+        {
+            _players = new[] { "player0", "player1" };
+            Given_a_game_in_progress(6, 6);
+            And_a_player_has_three_moves_in_succession_in_a_diagonal(direction, true);
+            When_the_player_places_the_fourth_move_in_the_same_diagonal(true);
+            Then_the_game_is_done();
+            And_the_player_is_the_winner("player0");
+        }
+
 
         [TestCase(-1)]
         [TestCase(4)]
@@ -223,9 +235,9 @@ namespace _9dt.Tests
         }
 
         #region Methods
-        private void Given_a_game_in_progress()
+        private void Given_a_game_in_progress(int rows = 4, int cols = 4)
         {
-            var createResponse = _controller.CreateGame(new NewGame { Players = _players, Rows = 4, Columns = 4 });
+            var createResponse = _controller.CreateGame(new NewGame { Players = _players, Rows = rows, Columns = cols });
             _gameId = createResponse.Id;
         }
 
@@ -283,11 +295,30 @@ namespace _9dt.Tests
             When_requesting_to_make_a_move(_players[1], 0);
             When_requesting_to_make_a_move(_players[0], 2);
         }
-        private void And_a_player_has_three_moves_in_succession_in_a_diagonal(string direction)
+        private void And_a_player_has_three_moves_in_succession_in_a_diagonal(string direction, bool largeboard = false)
         {
-            switch (direction)
+            if (direction == "Ascending")
             {
-                case "Ascending":
+                if (largeboard)
+                {
+
+                    When_requesting_to_make_a_move(_players[0], 1);
+                    When_requesting_to_make_a_move(_players[1], 2);
+                    When_requesting_to_make_a_move(_players[0], 3);
+                    When_requesting_to_make_a_move(_players[1], 4);
+                    When_requesting_to_make_a_move(_players[0], 1);
+                    When_requesting_to_make_a_move(_players[1], 2);
+                    When_requesting_to_make_a_move(_players[0], 2);
+                    When_requesting_to_make_a_move(_players[1], 3);
+                    When_requesting_to_make_a_move(_players[0], 3);
+                    When_requesting_to_make_a_move(_players[1], 4);
+                    When_requesting_to_make_a_move(_players[0], 3);
+                    When_requesting_to_make_a_move(_players[1], 4);
+                    When_requesting_to_make_a_move(_players[0], 4);
+                    When_requesting_to_make_a_move(_players[1], 3);
+                }
+                else
+                {
                     When_requesting_to_make_a_move(_players[0], 0);
                     When_requesting_to_make_a_move(_players[1], 1);
                     When_requesting_to_make_a_move(_players[0], 1);
@@ -298,8 +329,29 @@ namespace _9dt.Tests
                     When_requesting_to_make_a_move(_players[1], 3);
                     When_requesting_to_make_a_move(_players[0], 3);
                     When_requesting_to_make_a_move(_players[1], 2);
-                    break;
-                case "Descending":
+                }
+            }
+            else if (direction == "Descending")
+            {
+                if (largeboard)
+                {
+                    When_requesting_to_make_a_move(_players[0], 1);
+                    When_requesting_to_make_a_move(_players[1], 2);
+                    When_requesting_to_make_a_move(_players[0], 3);
+                    When_requesting_to_make_a_move(_players[1], 4);
+                    When_requesting_to_make_a_move(_players[0], 1);
+                    When_requesting_to_make_a_move(_players[1], 1);
+                    When_requesting_to_make_a_move(_players[0], 1);
+                    When_requesting_to_make_a_move(_players[1], 2);
+                    When_requesting_to_make_a_move(_players[0], 1);
+                    When_requesting_to_make_a_move(_players[1], 2);
+                    When_requesting_to_make_a_move(_players[0], 2);
+                    When_requesting_to_make_a_move(_players[1], 3);
+                    When_requesting_to_make_a_move(_players[0], 3);
+                    When_requesting_to_make_a_move(_players[1], 3);
+                }
+                else
+                {
                     When_requesting_to_make_a_move(_players[0], 0);
                     When_requesting_to_make_a_move(_players[1], 0);
                     When_requesting_to_make_a_move(_players[0], 0);
@@ -310,11 +362,12 @@ namespace _9dt.Tests
                     When_requesting_to_make_a_move(_players[1], 2);
                     When_requesting_to_make_a_move(_players[0], 2);
                     When_requesting_to_make_a_move(_players[1], 2);
-                    break;
-                default:
-                    throw new NotImplementedException();
+                }
             }
-
+            else
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private void When_the_last_move_is_made()
@@ -388,7 +441,6 @@ namespace _9dt.Tests
                     When_requesting_to_make_a_move("player0", 3); // 3 1
                     When_requesting_to_make_a_move("player1", 2); // 2 3
                     When_requesting_to_make_a_move("player0", 3); // 3 2
-                   // When_requesting_to_make_a_move("player1", 3); // 3 3       
                     break;
             }
         }
@@ -404,9 +456,9 @@ namespace _9dt.Tests
             _status = _controller.GetStatus(_gameId);
         }
 
-        private void When_the_player_places_the_fourth_move_in_the_same_diagonal()
+        private void When_the_player_places_the_fourth_move_in_the_same_diagonal(bool largeboard = false)
         {
-            When_requesting_to_make_a_move("player0", 3);
+            When_requesting_to_make_a_move("player0", largeboard ? 4 : 3);
             _status = _controller.GetStatus(_gameId);
         }
 

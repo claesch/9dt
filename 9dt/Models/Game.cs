@@ -13,6 +13,7 @@ namespace _9dt.Models
     
     public class Game
     {
+        private const int WinningMatches = 4;
         private readonly string _player1;
         private readonly string _player2;
         private readonly int _rows;
@@ -71,7 +72,7 @@ namespace _9dt.Models
             {
                 var boardMove = (BoardMove)move;
                 Board[boardMove.Column, boardMove.Row] = boardMove.Player;
-                if (Moves.Count >= 7 && IsGameWon(boardMove))
+                if (Moves.Count >= ((WinningMatches * 2) - 1) && IsGameWon(boardMove))
                 {
                     SetWinner(boardMove.Player);
                 }
@@ -116,109 +117,19 @@ namespace _9dt.Models
 
         private bool IsGameWon(BoardMove move)
         {
-            var rowCount = 1;
-            var colCount = 1;
-            var increasingDiag = 1;
-            var decreasingDiag = 1;
-
-            //check row
-            var currentCol = move.Column - 1;
-            while (currentCol >= 0 && rowCount <= 4)
-            {
-                if (IsPlayerInSpot(move.Player, currentCol, move.Row))
-                    rowCount++;
-                else
-                    break;
-                currentCol--;
-            }
-
-            currentCol = move.Column + 1;
-            while (currentCol < _columns && rowCount < 4)
-            {
-                if (IsPlayerInSpot(move.Player, currentCol, move.Row))
-                    rowCount++;
-                else break;
-                currentCol++;
-            }
-            if (rowCount >= 4)
+            if (FourInARow_Row(move))
                 return true;
 
-            //Column check -- only have to check below move when checking for column since none could be above
-            var currentRow = move.Row - 1;
-            while (currentRow >= 0 && rowCount < 4)
-            {
-                if (IsPlayerInSpot(move.Player, move.Column, currentRow))
-                    colCount++;
-                else break;
-                currentRow--;
-            }
-            if (colCount >= 4)
+            if (FourInARow_Column(move))
                 return true;
 
-            //check increasing diagonal
-            currentRow = move.Row - 1;
-            currentCol = move.Column - 1;
-            while (currentRow >= 0 && currentCol >=0 && increasingDiag < 4)
-            {
-                if (IsPlayerInSpot(move.Player, currentCol, currentRow))
-                    increasingDiag++;
-                else break;
-                currentRow--;
-                currentCol--;
-            }
-
-            currentRow = move.Row + 1;
-            currentCol = move.Column + 1;
-
-            while (currentRow < _rows && currentCol < _columns && increasingDiag < 4)
-            {
-                if (IsPlayerInSpot(move.Player, currentCol, currentRow))
-                    increasingDiag++;
-                else break;
-                currentRow++;
-                currentCol++;
-            }
-            if (increasingDiag >= 4)
+            if (FourInARow_IncreasingDiag(move))
                 return true;
-
-            //check decreasing diagonal
-            currentRow = move.Row + 1;
-            currentCol = move.Column - 1;
-            while (currentRow < _rows && currentCol >= 0 && decreasingDiag < 4)
-            {
-                if (IsPlayerInSpot(move.Player, currentCol, currentRow))
-                    decreasingDiag++;
-                else break;
-                currentRow++;
-                currentCol--;
-            }
-
-            currentRow = move.Row - 1;
-            currentCol = move.Column + 1;
-
-            while (currentRow >= 0 && currentCol < _columns && decreasingDiag < 4)
-            {
-                if (IsPlayerInSpot(move.Player, currentCol, currentRow))
-                    decreasingDiag++;
-                else break;
-                currentRow--;
-                currentCol++;
-            }
-            if (decreasingDiag >= 4)
+            
+            if (FourInARow_DescreasingDiag(move))
                 return true;
 
             return false;
-        }
-
-        private bool IsPlayerInSpot(string player, int col, int row)
-        {
-            return Board[col, row] == player;
-        }
-
-        private void VerifyColumnExists(int? column)
-        {
-            if (column == null || column < 0 || column > _columns - 1)
-                throw new IllegalMoveException($"Column requested does not exist in the game. Valid column are 0 to {_columns - 1}.");
         }
 
         private int GetRowForMove(int column)
@@ -229,6 +140,19 @@ namespace _9dt.Models
             throw new IllegalMoveException("The requested column is full");
         }
 
+        private bool IsPlayerInSpot(string player, int col, int row)
+        {
+            return Board[col, row] == player;
+        }
+
+        #region Validation
+        private void VerifyColumnExists(int? column)
+        {
+            if (column == null || column < 0 || column > _columns - 1)
+                throw new IllegalMoveException($"Column requested does not exist in the game. Valid column are 0 to {_columns - 1}.");
+        }
+
+        
         private void VerifyPlayerPartOfGame(string player)
         {
             if (_player1 != player && _player2 != player)
@@ -251,5 +175,98 @@ namespace _9dt.Models
             if (end != null && (end < 0 || end >= Moves.Count()))
                 throw new MoveNotFoundException();
         }
+        #endregion
+
+        #region Winning Scenarios
+        private bool FourInARow_Row(BoardMove move)
+        {
+            int matchingPlayCount = 0;
+            var startingColumn = move.Column - (WinningMatches - 1) < 0 ? 0 : move.Column - (WinningMatches - 1);
+            int endingColumn = move.Column + (WinningMatches - 1) >= _columns ? _columns - 1 : move.Column + (WinningMatches - 1);
+
+            for (var i = startingColumn; i <= endingColumn && matchingPlayCount < WinningMatches; i++)
+            {
+                if (IsPlayerInSpot(move.Player, i, move.Row))
+                    matchingPlayCount++;
+                else
+                    matchingPlayCount = 0;
+            }
+
+            return matchingPlayCount >= WinningMatches;
+        }
+
+        private bool FourInARow_Column(BoardMove move)
+        {
+            int matchingPlayCount = 0;
+            var startingRow = move.Row - (WinningMatches - 1) < 0 ? 0 : move.Row - (WinningMatches - 1);
+            int endingRow = move.Row;
+
+            for (var i = startingRow; i <= endingRow && matchingPlayCount < WinningMatches; i++)
+            {
+                if (IsPlayerInSpot(move.Player, move.Column, i))
+                    matchingPlayCount++;
+                else
+                    matchingPlayCount = 0;
+            }
+
+            return matchingPlayCount >= WinningMatches;
+        }
+
+        private bool FourInARow_IncreasingDiag(BoardMove move)
+        {
+            int matchingPlayCount = 1;
+            var currentRow = move.Row - 1;
+            var currentCol = move.Column - 1;
+            while (currentRow >= 0 && currentCol >= 0 && matchingPlayCount < WinningMatches)
+            {
+                if (IsPlayerInSpot(move.Player, currentCol, currentRow))
+                    matchingPlayCount++;
+                else break;
+                currentRow--;
+                currentCol--;
+            }
+
+            currentRow = move.Row + 1;
+            currentCol = move.Column + 1;
+
+            while (currentRow < _rows && currentCol < _columns && matchingPlayCount < WinningMatches)
+            {
+                if (IsPlayerInSpot(move.Player, currentCol, currentRow))
+                    matchingPlayCount++;
+                else break;
+                currentRow++;
+                currentCol++;
+            }
+            return matchingPlayCount >= WinningMatches;
+        }
+
+        private bool FourInARow_DescreasingDiag(BoardMove move)
+        {
+            int matchingPlayCount = 1;
+            var currentRow = move.Row + 1;
+            var currentCol = move.Column - 1;
+            while (currentRow < _rows && currentCol >= 0 && matchingPlayCount < WinningMatches)
+            {
+                if (IsPlayerInSpot(move.Player, currentCol, currentRow))
+                    matchingPlayCount++;
+                else break;
+                currentRow++;
+                currentCol--;
+            }
+
+            currentRow = move.Row - 1;
+            currentCol = move.Column + 1;
+
+            while (currentRow >= 0 && currentCol < _columns && matchingPlayCount < WinningMatches)
+            {
+                if (IsPlayerInSpot(move.Player, currentCol, currentRow))
+                    matchingPlayCount++;
+                else break;
+                currentRow--;
+                currentCol++;
+            }
+            return matchingPlayCount >= WinningMatches;
+        }
+        #endregion
     }
 }
