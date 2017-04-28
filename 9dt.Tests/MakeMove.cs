@@ -136,6 +136,7 @@ namespace _9dt.Tests
                 Then_an_error_is_thrown(ex);
                 And_the_error_indicates<IllegalMoveException>(ex);
                 exception = true;
+                And_the_player_can_make_another_move(_players[0], 3);
             }
             exception.Should().BeTrue();
         }
@@ -182,6 +183,7 @@ namespace _9dt.Tests
                 Then_an_error_is_thrown(ex);
                 And_the_error_indicates<IllegalMoveException>(ex);
                 exception = true;
+                And_the_player_can_make_another_move(_players[0], 1);
             }
             exception.Should().BeTrue();
         }
@@ -247,6 +249,11 @@ namespace _9dt.Tests
         }
 
         private void When_requesting_to_make_a_move(string player, int column)
+        {
+            _response = _controller.CreateMove(_gameId, player, new Models.MakeMove { Column = column });
+        }
+
+        private void And_the_player_can_make_another_move(string player, int column)
         {
             _response = _controller.CreateMove(_gameId, player, new Models.MakeMove { Column = column });
         }

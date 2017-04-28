@@ -149,7 +149,7 @@ namespace _9dt.Models
         private void VerifyColumnExists(int? column)
         {
             if (column == null || column < 0 || column > _columns - 1)
-                throw new IllegalMoveException($"Column requested does not exist in the game. Valid column are 0 to {_columns - 1}.");
+                throw new IllegalMoveException($"Column requested does not exist in the game. Valid columns are 0 to {_columns - 1}.");
         }
 
         
